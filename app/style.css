@@ -1,0 +1,79 @@
+.content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 30px;
+}
+
+.tag-and-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.tag-and-count:nth-of-type(1) {
+    margin: auto;
+}
+
+.rounded-count {
+    width: 100px;
+    height: 100px;
+    background-color: #ffffe3 ;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+}
+
+.count-text {
+    color: tan;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.progress-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    margin: auto;
+    gap: 20px;
+}
+
+.percent{
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: cornflowerblue;
+}
+
+.description {
+    width: 700px;
+    margin: auto;
+    font-size: 16px;
+    padding: 20px;
+    color: white;
+    background: lightblue;
+    border-radius: 20px;
+}
+
+.content button {
+    width: 200px !important;
+    margin-left: auto;
+}
+
+.billing-report {
+    margin: auto;
+    width: 300px;
+}
+
+.balance {
+    position: absolute;
+    right: 20px;
+    font-weight: bold;
+}

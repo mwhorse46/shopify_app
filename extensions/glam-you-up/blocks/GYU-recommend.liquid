@@ -1,0 +1,242 @@
+{{ 'style.css' | asset_url | stylesheet_tag }}
+
+{% style %}
+  .gyu-recommend-modal {
+    display: block;
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .gyu-recommend-modal-content {
+    position: relative;
+    margin-left: auto;
+    background-color: #fefefe;
+    width: 600px;
+    height: 100%;
+    padding: 30px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+  }
+
+  .gyu-recommend-close {
+    color: #aaaaaa;
+    font-size: 28px;
+    top: 0px;
+    right: 10px;
+    font-weight: bold;
+    position: absolute;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .gyu-recommend-close:hover,
+  .gyu-recommend-close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .ai-analysis-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .ai-card {
+    border-radius: 20px;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    padding: 20px;
+  }
+
+  .rating-stars {
+    display: flex;
+    gap: 4px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .gyu-recommend-modal-content {
+      width: 90%;
+    }
+  }
+
+  #aiAnalysisProduct {
+    display: flex;
+    justify-content: end;
+  }
+{% endstyle %}
+
+<div id="aiAnalysisProduct">
+  <button class="ai-btn" id="gyuAnalyzeBtn" onclick="gyuRecommend()">GYU Analyze</button>
+</div>
+
+<script defer src="{{ 'script.js' | asset_url }}"></script>
+
+<script>
+  var analysisModal;
+  
+  var gyuAnalyze = document.getElementById("gyuAnalyzeBtn");
+
+  var body = document.querySelector("body");
+  
+  const gyuProducts = JSON.parse(window.localStorage.getItem("gyuProducts"));
+
+  function stars(starCount, elementId) {
+    var starsHTML = "";
+    var count = parseInt(starCount/100*5);
+    if(elementId == "scoreOverall") {
+      for(var i=0; i<count; i++) {
+        starsHTML += `{% render 'icon-star-full' %}`;
+      }
+      for(var i=count; i<5; i++) {
+        starsHTML += `{% render 'icon-star-empty' %}`;
+      }
+    } else {
+      for(var i=0; i<count; i++) {
+        starsHTML += `{% render 'icon-green-star-full' %}`;
+      }
+      for(var i=count; i<5; i++) {
+        starsHTML += `{% render 'icon-green-star-empty' %}`;
+      }
+    }
+    document.getElementById(elementId).innerHTML = starsHTML;
+  }
+   
+  function gyuRecommend() {
+    var value = window.localStorage.getItem('gyuStatus'); 
+    {% comment %} if(gyuProducts) { {% endcomment %}
+      body.innerHTML += `
+        <div id="gyuRecommendModal" class="gyu-recommend-modal">
+          <div class="gyu-recommend-modal-content">
+            <p class="gyu-recommend-close" onclick="closeRecommend()">&times;</p>
+            <div class="ai-analysis-modal">
+              <div class="rating-stars" id="scoreOverall"></div>
+              <div class="rating-stars" id="scoreMorph"></div>
+              <p id="mathDescription"></p>
+              <div class="rating-stars" id="scoreColor"></div>
+              <p id="matchRecommendation"></p>
+            </div>
+          </div>
+        </div>`;
+        
+      analysisModal = document.getElementById("gyuRecommendModal");
+  
+      var match_overall = document.getElementById("scoreOverall");
+      var match_description = document.getElementById("mathDescription");
+      var match_morph = document.getElementById("scoreMorph");
+      var match_recommendation = document.getElementById("matchRecommendation");
+      var match_color = document.getElementById("scoreColor");
+
+      const selfieId = window.localStorage.getItem('selfieId');
+      const selfieUrl = window.localStorage.getItem('selfieUrl');
+      const shopId = {{ shop.id | json }};
+      const productId = {{ product.id | json }};
+      var variantId;
+      
+      var images = document.getElementsByTagName('img');
+      var featuredImage;
+      for (var i = 0; i < images.length; i++) {
+        var img = images[i];
+        if (img.width > 300 && img.height > 300) {
+            featuredImage = img.src;
+            break; // Stop looping once the first image with the specified dimensions is found
+        }
+      }
+      console.log("Featured Image : ", featuredImage);
+
+      const variants = {{product.variants | json}};
+      for(var i = 0; i<variants.length; i++) {
+        if(featuredImage.includes(variants[i].featured_image.src) == true) {
+          variantId = variants[i].featured_image.id;
+          break;
+        } else {
+          variantId = {{ product.selected_or_first_available_variant.featured_image.id }}
+        }
+      }
+
+      console.log("selfieId: ", selfieId);
+      console.log("selfieUrl: ", selfieUrl);
+      console.log("shopId: ", shopId);
+      console.log("productId: ", productId);
+      console.log("variantId: ", variantId);
+      console.log("product: ", {{ product | json }});
+
+      let matchData = {
+        "selfie_id": selfieId,
+        "selfie_url": selfieUrl,
+        "shop_id": shopId,
+        "product_id": productId,
+        "variant_id": variantId
+      }
+
+      var loaderProgressElements = document.querySelectorAll('.loader-progress');
+      loaderProgressElements.forEach(function(element) {
+        element.style.width = '0';
+      });
+
+      startProgress(10);
+      match_description.innerText = "Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences.";
+      match_recommendation.innerText = "Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences. Utilize your self-portrait to discover the most suitable products tailored to your preferences.";
+      stars(4, 'scoreOverall');
+      stars(3, 'scoreMorph');
+      stars(5, 'scoreColor');
+      {% comment %} $.ajax({
+        type: "post",
+        url: "https://glamuup.ngrok.io/match-analysis",
+        data: matchData,
+        dataType: 'json',
+        success: function(data) {
+          console.log("data :", data);
+          if(!data || data === undefined || data.score_color === undefined) {
+            errorToast("Can not get the match result.")
+          } else {
+            console.log("Get matches!");
+            var matchScoreColor = data.score_color;
+            var matchScoreMorph = data.score_morph;
+            var matchScoreOverall = data.score_overall;
+            var matchRecommendation = data.recommendation;
+            var matchDescription = data.description
+    
+            match_description.innerText = matchDescription;
+            match_recommendation.innerText = matchRecommendation;
+            stars(parseInt(matchScoreOverall), 'scoreOverall');
+            stars(parseInt(matchScoreMorph), 'scoreMorph');
+            stars(parseInt(matchScoreColor), 'scoreColor');
+            analysisModal.style.display = 'block';
+          }
+          endProgress();
+        },
+        error: function(data) {
+          errorToast("Can not connect to the server");
+          endProgress();
+        }
+      }); {% endcomment %}
+      
+      endProgress();
+    {% comment %} } else {
+      document.getElementById("gyuRegisterModal").style.display = 'block';
+    } {% endcomment %}
+  }
+  
+  function closeRecommend() {
+    var aiRecommendModal = document.getElementById('gyuRecommendModal');
+    aiRecommendModal.parentNode.removeChild(aiRecommendModal);
+  }
+</script>
+
+{% schema %}
+{
+  "name": "GYU recommend",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": []
+}
+{% endschema %}

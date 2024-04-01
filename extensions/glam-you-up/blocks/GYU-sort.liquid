@@ -1,0 +1,203 @@
+{{ 'style.css' | asset_url | stylesheet_tag }}
+
+{% style %}
+  #gyu_sort_section {
+    display: flex;
+    justify-content: end;
+  }
+
+  #gyuRecommendBtn {
+    margin-right: 0px;
+    margin-bottom: 10px;
+  }
+
+  
+  .gyu-sort-modal {
+    display: block;
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  
+  .gyu-sort-modal-content {
+    position: relative;
+    margin-top: 150px !important;
+    margin: auto;
+    background-color: #fefefe;
+    width: 1024px;
+    height: 700px;
+    overflow: hidden;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+  }
+
+  .gyu-collection {
+    padding: 20px;
+    height: 570px;
+    overflow-y: auto;
+  }
+
+  @media screen and (max-width: 1110px) {
+    .gyu-sort-modal-content {
+      width: 90%;
+    }
+
+    .gyu-collection {
+      height: 500px;
+    }
+  }
+  
+  .gyu-sort-close {
+    color: #aaaaaa;
+    font-size: 28px;
+    top: 0px;
+    right: 10px;
+    font-weight: bold;
+    position: absolute;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .gyu-sort-close:hover,
+  .gyu-sort-close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .gyu-product-link {
+    text-decoration: none;
+  }
+{% endstyle %}
+
+<div id="gyu_sort_section">
+  <button class="ai-btn" id="gyuRecommendBtn"  onclick="gyuSort()">
+    Recommend by GYU
+  </button>
+</div>
+
+<script defer src="{{ 'script.js' | asset_url }}"></script>
+
+<script>
+  var sortBtn = document.getElementById("gyuRecommendBtn");
+
+  var allProducts = [];
+  {% for collection in collections %}
+    {% for product in collection.products %}
+      var productExists = false;
+      for (var i = 0; i < allProducts.length; i++) {
+        if (allProducts[i].id === {{ product.id | json }}) {
+          productExists = true;
+          break;
+        }
+      }
+      if (!productExists) {
+        allProducts.push({{ product | json }});
+      }
+    {% endfor %}
+  {% endfor %}
+  console.log("All Products:", allProducts);
+
+  var gyuProducts = JSON.parse(window.localStorage.getItem("gyuProducts"));
+  {% comment %} var recommendProducts = [];
+
+  if(gyuProducts) {
+    console.log("here1!");
+    for (var i = 0; i < gyuProducts.length; i++) {
+      var productExists = false;
+      for (var j = 0; j < recommendProducts.length; j++) {
+        if (recommendProducts[j].product_id === gyuProducts[i].product_id) {
+          productExists = true;
+          break;
+        }
+      }
+      if (!productExists) {
+        recommendProducts.push(gyuProducts[i]);
+      }
+    }
+  } {% endcomment %}
+
+  var recommendProducts = [
+  {product_id: '8388569596162', variant_id: '40150401941762'},
+  {product_id: '8388682187010', variant_id: '40150547955970'},
+  {product_id: '8388700700930', variant_id: '40150570107138'},
+  {product_id: '8388730126594', variant_id: '40150608314626'},
+  {product_id: '8388676976898', variant_id: '40150538649858'},];
+
+
+  console.log("Recommend Products :", recommendProducts);
+  var body = document.querySelector("body");
+
+  function gyuSort() {
+    console.log("Sort!");
+    if(recommendProducts.length > 0) {
+      var value = window.localStorage.getItem('gyuStatus');
+        body.innerHTML += `
+        <div id="gyuSortModal" class="gyu-sort-modal">
+          <div class="gyu-sort-modal-content">
+            <p class="gyu-sort-close" onclick="closeSort()">&times;</p>
+            <h1 style="margin: 0; padding-left: 50px; font-weight: bold;">GYU Recommendation Products</h1>
+            <div class="gyu-collection" id="gyuCollection">
+            </div>
+          </div>
+        </div>`;
+      
+      document.querySelectorAll('.loader-progress').style = 'width: 0';
+      startProgress(4);
+      console.log("After Progress...")
+      var gyuSortModal = document.querySelector("#gyuSortModal");
+      var recommendedCollection = gyuSortModal.querySelector("#gyuCollection");
+      for(var i=0; i<recommendProducts.length; i++){
+        {%- for product in collections.all.products -%}
+          var productId = {{ product.id | json }};
+          if(recommendProducts[i].product_id == productId) {
+            console.log({{ product.url | json }});
+            {% for variant in product.variants %}
+              var currentVariant = {{ variant.id | json }}
+              if(currentVariant.id == recommendProducts[i].id) {
+                {% assign ai_recommend_image = variant.featured_image.src %}
+              }
+            {% endfor %}
+            recommendedCollection.innerHTML += `
+              <a href="{{ product.url }}" class="gyu-product-link">
+                {% render 'gyu-product-card',
+                  gyu_product_image: product.featured_image,
+                  gyu_product_title: product.title,
+                  gyu_product_price: product.price,
+                %}
+              </a>`;
+          }
+        {% endfor %}
+        setTimeout(function() {
+          endProgress();
+        }, 4000);
+      }
+    } else {
+      document.getElementById('gyuRegisterModal').style.display = 'block';
+    }
+  }
+  
+  function closeSort() {
+    var aiSortModal = document.getElementById('gyuSortModal');
+    if (aiSortModal) {
+      aiSortModal.parentNode.removeChild(aiSortModal);
+    }
+  }
+</script>
+
+{% schema %}
+{
+  "name": "GYU sort",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id          String    @id
+  shop        String
+  state       String
+  isOnline    Boolean   @default(false)
+  scope       String?
+  expires     DateTime?
+  accessToken String
+  userId      BigInt?
+}
+
+model gyuProducts {
+  id                String  @id
+  shop_id           String
+  product_id        String
+  variant_id        String  @unique
+  url_product_image String
+  gender            String  @default("-")
+  status            Boolean @default(false)
+}
+
+model gyuAppStatus {
+  id            String   @id
+  shop_id       String   @unique
+  installed_date DateTime
+  expire_date    DateTime
+}

@@ -1,0 +1,31 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "88e352650b03189df6f3357147b0cff2"
+name = "gyu-app"
+application_url = "https://beast-charles-remembered-ray.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "quickstart-0371ae97.myshopify.com"
+include_config_on_deploy = true
+
+[access.admin]
+direct_api_mode = "online"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,write_orders,write_products"
+
+[auth]
+redirect_urls = [
+  "https://beast-charles-remembered-ray.trycloudflare.com/auth/callback",
+  "https://beast-charles-remembered-ray.trycloudflare.com/auth/shopify/callback",
+  "https://beast-charles-remembered-ray.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[pos]
+embedded = false
