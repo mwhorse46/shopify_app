@@ -49,8 +49,7 @@ export default function Index() {
   };
 
   useEffect(() => {
-    console.log("---------------------------", isExpired);
-    if (isExpired != true) {
+    if (isExpired == true) {
       console.log("Expired------------taking plan");
       navigate("/billing/topUpBalance");
     }
@@ -137,7 +136,7 @@ export default function Index() {
                   width={"100%"}
                   title="Glam You Up guide video"
                   description={`In this course, you’ll learn how the Glam You Up assist you and get more hapiness customers.`}
-                  popoverActions={[{ content: "Dismiss", onAction: () => { } }]}
+                  popoverActions={[{ content: "Dismiss", onAction: () => {} }]}
                 >
                   <VideoThumbnail
                     videoLength={80}

@@ -7,12 +7,12 @@ import {
   ProgressBar,
 } from "@shopify/polaris";
 import React, { useState, useEffect } from "react";
-import { useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { getAllProducts, getRegistered } from "../models/gyuProducts.server";
 import { authenticate } from "../shopify.server";
 import CountView from "../components/countView";
-import { GET_PRODUCTS_QUERY, GET_SHOP_INFO, SET_EXPIRED_INFO } from "../query";
+import { GET_PRODUCTS_QUERY, GET_SHOP_INFO } from "../query";
 import {
   REGISTER_PRODUCTS,
   TOTAL_PRODUCTS,
@@ -84,7 +84,6 @@ export default function GYUSettingPage() {
   const [percent, setPercent] = useState(0);
   const bridge = useAppBridge();
   const navigate = useNavigate();
-  const submit = useSubmit();
 
   function DemoPage() {
     setStoreURL(bridge.config.shop);
@@ -93,7 +92,6 @@ export default function GYUSettingPage() {
   useEffect(() => {
     console.log(products);
     DemoPage();
-    submit(request, { method: "POST" });
   }, []);
 
   useEffect(() => {
@@ -179,11 +177,4 @@ export default function GYUSettingPage() {
       </BlockStack>
     </Page>
   );
-};
-
-export const action = async ({ request, params }) => {
-  console.log("----------------------------mmmm", request)
-  const { admin } = await authenticate.admin(request);
-  const shopInfo = await admin.graphql(SET_EXPIRED_INFO);
-
-};
+}
